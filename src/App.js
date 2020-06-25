@@ -1,26 +1,47 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import React, { Component, Fragment } from "react";
+import "./App.css";
+import axios from "axios";
+import Navbar from "./component/layout/Navbar";
+import Content from "./component/layout/CardList";
+import SearchField from "./component/layout/SearchField";
 
-function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+class App extends Component {
+  state = {
+    users: [],
+    text: "",
+  };
+  async componentDidMount() {
+    const res = await axios.get(
+      `https://api.github.com/users?client_id=${process.env.REACT_APP_CLIENT_ID}&client_secret=${process.env.REACT_APP_CLIENT_SECRET}`
+    );
+    const users = await res.data;
+    this.setState({ users: users });
+  }
+
+  searchText = async () => {
+    const res = await axios.get(
+      `https://api.github.com/search/users?q=${this.state.text}&client_id=${process.env.REACT_APP_CLIENT_ID}&client_secret=${process.env.REACT_APP_CLIENT_SECRET}`
+    );
+    const users = await res.data;
+    this.setState({ users: users.items });
+  };
+
+  handleChange = (e) => {
+    e.preventDefault();
+    this.setState({ text: e.target.value }, this.searchText);
+  };
+
+  render() {
+    return (
+      <Fragment>
+        <Navbar />
+        <SearchField handleChange={this.handleChange} />
+        <div className="container">
+          <Content users={this.state.users} />
+        </div>
+      </Fragment>
+    );
+  }
 }
 
 export default App;
